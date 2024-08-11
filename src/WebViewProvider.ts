@@ -243,13 +243,13 @@ export class WebViewProvider implements vscode.WebviewViewProvider {
 
                   if (
                     (boid.x < 0 && boid.vx < 0) ||
-                    (boid.x > this.view.width && boid.vx > 0)
+                    (boid.x + BOID_SIZE * pixelArt[0].length > this.view.width && boid.vx > 0) 
                   ) {
                     boid.vx *= -1;
                   }
                   if (
                     (boid.y < 0 && boid.vy < 0) ||
-                    (boid.y > this.view.height && boid.vy > 0)
+                    (boid.y + BOID_SIZE * pixelArt.length > this.view.height && boid.vy > 0)
                   ) {
                     boid.vy *= -1;
                   }
