@@ -114,7 +114,7 @@ function getWebviewContent() {
 									for (let py = 0; py < pixelArt.length; py++) {
 										for (let px = 0; px < pixelArt[py].length; px++) {
 											if (pixelArt[py][px] === 1) {
-												this.ctx.fillStyle = "black";
+												this.ctx.fillStyle = "red";
 												this.ctx.fillRect(
 													x + px * BOID_SIZE,
 													y + py * BOID_SIZE,
@@ -140,17 +140,16 @@ function getWebviewContent() {
 											boid.vy *= r;
 										}
 
-										let isOutsideX =
+										if (
 											(boid.x < 0 && boid.vx < 0) ||
-											(boid.x > this.view.width && boid.vx > 0);
-										let isOutsideY =
-											(boid.y < 0 && boid.vy < 0) ||
-											(boid.y > this.view.height && boid.vy > 0);
-
-										if (isOutsideX) {
+											(boid.x > this.view.width && boid.vx > 0)
+										) {
 											boid.vx *= -1;
 										}
-										if (isOutsideY) {
+										if (
+											(boid.y < 0 && boid.vy < 0) ||
+											(boid.y > this.view.height && boid.vy > 0)
+										) {
 											boid.vy *= -1;
 										}
 
@@ -218,7 +217,7 @@ function getWebviewContent() {
 						</script>
 					</body>
 				</html>
-    `;
+	`;
 }
 
 export function deactivate() {}
