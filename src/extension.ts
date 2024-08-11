@@ -1,26 +1,235 @@
-// The module 'vscode' contains the VS Code extensibility API
-// Import the module and reference it with the alias vscode in your code below
-import * as vscode from 'vscode';
+import * as vscode from "vscode";
 
-// This method is called when your extension is activated
-// Your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
+	let disposable = vscode.commands.registerCommand(
+		"boid-simulation.start",
+		() => {
+			const panel = vscode.window.createWebviewPanel(
+				"boidSimulation",
+				"Boid Simulation",
+				vscode.ViewColumn.One,
+				{
+					enableScripts: true,
+				}
+			);
 
-	// Use the console to output diagnostic information (console.log) and errors (console.error)
-	// This line of code will only be executed once when your extension is activated
-	console.log('Congratulations, your extension "vscode-alife" is now active!');
-
-	// The command has been defined in the package.json file
-	// Now provide the implementation of the command with registerCommand
-	// The commandId parameter must match the command field in package.json
-	const disposable = vscode.commands.registerCommand('vscode-alife.helloWorld', () => {
-		// The code you place here will be executed every time your command is executed
-		// Display a message box to the user
-		vscode.window.showInformationMessage('Hello World from vscode-alife!');
-	});
+			panel.webview.html = getWebviewContent();
+		}
+	);
 
 	context.subscriptions.push(disposable);
 }
 
-// This method is called when your extension is deactivated
+function getWebviewContent() {
+	return `
+				<!DOCTYPE html>
+				<html lang="en">
+					<head>
+						<meta charset="UTF-8" />
+						<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+						<title>Boid Simulation with Pixel Art</title>
+						<style>
+							body {
+								margin: 0;
+								overflow: hidden;
+							}
+							canvas {
+								display: block;
+							}
+						</style>
+					</head>
+					<body>
+						<canvas id="canvas"></canvas>
+						<script>
+							const FPS = 50;
+							const BOID_SIZE = 3; // ピクセルアートの1ピクセルのサイズ
+							const MAX_SPEED = 7;
+
+							const pixelArt = [
+								[1, 0, 1, 1, 1, 1, 0, 1],
+								[0, 1, 1, 1, 1, 1, 1, 0],
+								[1, 1, 0, 0, 0, 0, 1, 1],
+								[1, 0, 0, 1, 1, 0, 0, 1],
+								[1, 0, 1, 0, 0, 1, 0, 1],
+								[0, 1, 1, 1, 1, 1, 1, 0],
+								[0, 0, 1, 1, 1, 1, 0, 0],
+								[0, 0, 0, 1, 1, 0, 0, 0],
+							];
+
+							class Boids {
+								constructor() {
+									this.canvas = document.querySelector("#canvas");
+									this.ctx = this.canvas.getContext("2d");
+									this.boids = [];
+									this.view = { width: 0, height: 0 };
+								}
+								init() {
+									this.bindEvents();
+									this.updateView();
+									this.appendBoids(2);
+									setInterval(this.simulate.bind(this), 1000 / FPS);
+								}
+								bindEvents() {
+									addEventListener("mousedown", (e) => {
+										this.onMousedown(e);
+									});
+									addEventListener("mouseup", () => {
+										this.onMouseup();
+									});
+									addEventListener("resize", () => {
+										this.updateView();
+									});
+								}
+								onMousedown(e) {
+									this.appendBoids(null, e.pageX, e.pageY);
+								}
+								onMouseup() {
+									clearInterval(this.appendTimer);
+								}
+								updateView() {
+									this.view = {
+										width: window.innerWidth,
+										height: window.innerHeight,
+									};
+									this.canvas.width = this.view.width;
+									this.canvas.height = this.view.height;
+								}
+								simulate() {
+									this.drawBoids();
+									this.moveBoids();
+								}
+								appendBoids(length, x, y) {
+									let index = 0;
+									this.appendTimer = setInterval(() => {
+										if (length > 0 && index >= length) {
+											clearInterval(this.appendTimer);
+											return;
+										}
+										this.boids.push({
+											x: x || Math.random() * this.view.width,
+											y: y || Math.random() * this.view.height,
+											vx: 0,
+											vy: 0,
+										});
+										++index;
+									}, 10);
+								}
+								drawBoids() {
+									this.ctx.clearRect(0, 0, this.view.width, this.view.height);
+
+									for (let i = 0, len = this.boids.length; i < len; i++) {
+										this.drawPixelArt(this.boids[i].x, this.boids[i].y);
+									}
+								}
+								drawPixelArt(x, y) {
+									for (let py = 0; py < pixelArt.length; py++) {
+										for (let px = 0; px < pixelArt[py].length; px++) {
+											if (pixelArt[py][px] === 1) {
+												this.ctx.fillStyle = "black";
+												this.ctx.fillRect(
+													x + px * BOID_SIZE,
+													y + py * BOID_SIZE,
+													BOID_SIZE,
+													BOID_SIZE
+												);
+											}
+										}
+									}
+								}
+								moveBoids() {
+									for (let i = 0, len = this.boids.length; i < len; i++) {
+										let boid = this.boids[i];
+										let speed = Math.sqrt(Math.pow(boid.vx, 2) + Math.pow(boid.vy, 2));
+
+										this.cohesion(i);
+										this.separation(i);
+										this.alignment(i);
+
+										if (speed >= MAX_SPEED) {
+											let r = MAX_SPEED / speed;
+											boid.vx *= r;
+											boid.vy *= r;
+										}
+
+										let isOutsideX =
+											(boid.x < 0 && boid.vx < 0) ||
+											(boid.x > this.view.width && boid.vx > 0);
+										let isOutsideY =
+											(boid.y < 0 && boid.vy < 0) ||
+											(boid.y > this.view.height && boid.vy > 0);
+
+										if (isOutsideX) {
+											boid.vx *= -1;
+										}
+										if (isOutsideY) {
+											boid.vy *= -1;
+										}
+
+										boid.x += boid.vx;
+										boid.y += boid.vy;
+									}
+								}
+								cohesion(index) {
+									let center = { x: 0, y: 0 };
+									let boidLength = this.boids.length;
+
+									for (let i = 0; i < boidLength; i++) {
+										if (i === index) {
+											continue;
+										}
+										center.x += this.boids[i].x;
+										center.y += this.boids[i].y;
+									}
+									center.x /= boidLength - 1;
+									center.y /= boidLength - 1;
+
+									this.boids[index].vx += (center.x - this.boids[index].x) / 100;
+									this.boids[index].vy += (center.y - this.boids[index].y) / 100;
+								}
+								separation(index) {
+									for (let i = 0, len = this.boids.length; i < len; i++) {
+										if (i === index) {
+											continue;
+										}
+										let distance = this.getDistance(this.boids[i], this.boids[index]);
+
+										if (distance < 16) {
+											this.boids[index].vx -= this.boids[i].x - this.boids[index].x;
+											this.boids[index].vy -= this.boids[i].y - this.boids[index].y;
+										}
+									}
+								}
+								alignment(index) {
+									let average = { vx: 0, vy: 0 };
+									let boidLength = this.boids.length;
+
+									for (let i = 0; i < boidLength; i++) {
+										if (i === index) {
+											continue;
+										}
+										average.vx += this.boids[i].vx;
+										average.vy += this.boids[i].vy;
+									}
+									average.vx /= boidLength - 1;
+									average.vy /= boidLength - 1;
+
+									this.boids[index].vx += (average.vx - this.boids[index].vx) / 8;
+									this.boids[index].vy += (average.vy - this.boids[index].vy) / 8;
+								}
+								getDistance(boid1, boid2) {
+									let x = boid1.x - boid2.x;
+									let y = boid1.y - boid2.y;
+									return Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2));
+								}
+							}
+
+							setTimeout(() => {
+								new Boids().init();
+							}, 1000);
+						</script>
+					</body>
+				</html>
+    `;
+}
+
 export function deactivate() {}
