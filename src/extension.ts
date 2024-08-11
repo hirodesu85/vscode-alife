@@ -42,8 +42,8 @@ function getWebviewContent() {
 						<canvas id="canvas"></canvas>
 						<script>
 							const FPS = 30;
-							const BOID_SIZE = 3;
-							const MAX_SPEED = 7;
+							const BOID_SIZE = 1;
+							const MAX_SPEED = 6;
 
 							const pixelArt = [
 								[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -179,14 +179,19 @@ function getWebviewContent() {
 								}
 								drawBoids() {
 									for (let i = 0, len = this.boids.length; i < len; i++) {
-										this.drawPixelArt(this.boids[i].x, this.boids[i].y);
+										this.drawPixelArt(this.boids[i].x, this.boids[i].y, i);
 									}
 								}
-								drawPixelArt(x, y) {
+								drawPixelArt(x, y, index) {
 									for (let py = 0; py < pixelArt.length; py++) {
 										for (let px = 0; px < pixelArt[py].length; px++) {
-											if (pixelArt[py][px] !== 0) {
-												let color = pixelArt[py][px];
+											let color;
+											if (this.boids[index].vx > 0) {
+												color = pixelArt[py][pixelArt[py].length - 1 - px];
+											} else {
+												color = pixelArt[py][px];
+											}
+											if (color !== 0) {
 												switch (color) {
 													case 1:
 														this.ctx.fillStyle = "#000000"; // black
@@ -290,9 +295,9 @@ function getWebviewContent() {
 										}
 										let distance = this.getDistance(this.boids[i], this.boids[index]);
 
-										if (distance < 16) {
-											this.boids[index].vx -= this.boids[i].x - this.boids[index].x;
-											this.boids[index].vy -= this.boids[i].y - this.boids[index].y;
+										if (distance < 50) {
+											this.boids[index].vx -= (this.boids[i].x - this.boids[index].x) / 15;
+											this.boids[index].vy -= (this.boids[i].y - this.boids[index].y) / 15;
 										}
 									}
 								}
