@@ -42,7 +42,7 @@ function getWebviewContent() {
 						<canvas id="canvas"></canvas>
 						<script>
 							const FPS = 50;
-							const BOID_SIZE = 3; // ピクセルアートの1ピクセルのサイズ
+							const BOID_SIZE = 3;
 							const MAX_SPEED = 7;
 
 							const pixelArt = [
@@ -66,25 +66,16 @@ function getWebviewContent() {
 								init() {
 									this.bindEvents();
 									this.updateView();
-									this.appendBoids(2);
+									this.appendBoids(3);
 									setInterval(this.simulate.bind(this), 1000 / FPS);
 								}
 								bindEvents() {
-									addEventListener("mousedown", (e) => {
-										this.onMousedown(e);
-									});
-									addEventListener("mouseup", () => {
-										this.onMouseup();
+									addEventListener("click", (e) => {
+										this.appendBoids(1, e.pageX, e.pageY);
 									});
 									addEventListener("resize", () => {
 										this.updateView();
 									});
-								}
-								onMousedown(e) {
-									this.appendBoids(null, e.pageX, e.pageY);
-								}
-								onMouseup() {
-									clearInterval(this.appendTimer);
 								}
 								updateView() {
 									this.view = {
@@ -99,20 +90,18 @@ function getWebviewContent() {
 									this.moveBoids();
 								}
 								appendBoids(length, x, y) {
-									let index = 0;
-									this.appendTimer = setInterval(() => {
-										if (length > 0 && index >= length) {
-											clearInterval(this.appendTimer);
-											return;
-										}
+									if (this.boids.length >= 10) {
+										return;
+									}
+
+									for (let i = 0; i < length; i++) {
 										this.boids.push({
 											x: x || Math.random() * this.view.width,
 											y: y || Math.random() * this.view.height,
 											vx: 0,
 											vy: 0,
 										});
-										++index;
-									}, 10);
+									}
 								}
 								drawBoids() {
 									this.ctx.clearRect(0, 0, this.view.width, this.view.height);
