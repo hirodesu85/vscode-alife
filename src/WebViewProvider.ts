@@ -28,9 +28,8 @@ export class WebViewProvider implements vscode.WebviewViewProvider {
         <body>
           <canvas id="canvas"></canvas>
           <script>
-            const FPS = 30;
             const BOID_SIZE = 1;
-            const MAX_SPEED = 6;
+            const MAX_SPEED = 2;
 
             const pixelArt = [
               [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -107,7 +106,7 @@ export class WebViewProvider implements vscode.WebviewViewProvider {
                 this.updateView();
                 this.drawBackground();
                 this.appendBoids(3);
-                setInterval(this.simulate.bind(this), 1000 / FPS);
+                requestAnimationFrame(this.simulate.bind(this));
               }
               bindEvents() {
                 addEventListener("click", (e) => {
@@ -132,6 +131,7 @@ export class WebViewProvider implements vscode.WebviewViewProvider {
                 this.ctx.drawImage(this.offscreenCanvas, 0, 0);
                 this.drawBoids();
                 this.moveBoids();
+                requestAnimationFrame(this.simulate.bind(this));
               }
               drawBackground() {
                 for (let y = 0; y < this.offscreenCanvas.height / BOID_SIZE; y++) {
