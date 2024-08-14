@@ -283,8 +283,8 @@ export class WebViewProvider implements vscode.WebviewViewProvider {
                   let distance = this.getDistance(this.boids[i], this.boids[index]);
 
                   if (distance < 50) {
-                    this.boids[index].vx -= (this.boids[i].x - this.boids[index].x) / 15;
-                    this.boids[index].vy -= (this.boids[i].y - this.boids[index].y) / 15;
+                    this.boids[index].vx -= (this.boids[i].x - this.boids[index].x) / 20;
+                    this.boids[index].vy -= (this.boids[i].y - this.boids[index].y) / 20;
                   }
                 }
               }
