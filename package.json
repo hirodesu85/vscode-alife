@@ -17,12 +17,16 @@
         {
           "type": "webview",
           "id": "boid.webview",
-          "name": "WebView Sidebar"
+          "name": "Boid Simulation"
         }
       ]
     }
   },
 	"icon": "icon.png",
+	"repository": {
+		"type": "github",
+		"url": "https://github.com/hirodesu85/vscode-alife"
+	},
 	"scripts": {
 		"vscode:prepublish": "npm run package",
 		"compile": "webpack",
