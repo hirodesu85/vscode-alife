@@ -21,3 +21,5 @@ It can also be installed by searching for `vscode-alife` in the extensions panel
 
 ## How to Use
 Once you install the extension, a new item labeled "BOID SIMULATION" will automatically appear in the sidebar. Adjust the window to your preferred size and enjoy!
+
+You can add up to 10 agents to the simulation. Simply click to add an agent.
